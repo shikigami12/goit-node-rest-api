@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import gravatar from "gravatar";
 import User from "../db/models/User.js";
 
 const { JWT_SECRET } = process.env;
@@ -10,7 +11,8 @@ export const findUserByEmail = async (email) => {
 
 export const createUser = async (email, password) => {
   const hashedPassword = await bcrypt.hash(password, 10);
-  return User.create({ email, password: hashedPassword });
+  const avatarURL = gravatar.url(email, { s: "250", d: "retro" }, true);
+  return User.create({ email, password: hashedPassword, avatarURL });
 };
 
 export const validatePassword = async (password, hashedPassword) => {
@@ -27,4 +29,8 @@ export const updateUserToken = async (id, token) => {
 
 export const findUserById = async (id) => {
   return User.findByPk(id);
+};
+
+export const updateUserAvatar = async (id, avatarURL) => {
+  return User.update({ avatarURL }, { where: { id } });
 };
