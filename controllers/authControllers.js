@@ -1,6 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import * as authService from "../services/authServices.js";
+import { sendVerificationEmail } from "../services/emailService.js";
 import HttpError from "../helpers/HttpError.js";
 
 export const register = async (req, res, next) => {
@@ -13,6 +14,8 @@ export const register = async (req, res, next) => {
     }
 
     const user = await authService.createUser(email, password);
+
+    await sendVerificationEmail(user.email, user.verificationToken);
 
     res.status(201).json({
       user: {
@@ -32,6 +35,10 @@ export const login = async (req, res, next) => {
     const user = await authService.findUserByEmail(email);
     if (!user) {
       throw HttpError(401, "Email or password is wrong");
+    }
+
+    if (!user.verify) {
+      throw HttpError(401, "Email not verified");
     }
 
     const isValidPassword = await authService.validatePassword(
@@ -112,6 +119,44 @@ export const updateAvatar = async (req, res, next) => {
     await authService.updateUserAvatar(id, avatarURL);
 
     res.json({ avatarURL });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const verifyEmail = async (req, res, next) => {
+  try {
+    const { verificationToken } = req.params;
+
+    const user = await authService.findUserByVerificationToken(verificationToken);
+    if (!user) {
+      throw HttpError(404, "User not found");
+    }
+
+    await authService.verifyUser(user.id);
+
+    res.json({ message: "Verification successful" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resendVerificationEmail = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    const user = await authService.findUserByEmail(email);
+    if (!user) {
+      throw HttpError(404, "User not found");
+    }
+
+    if (user.verify) {
+      throw HttpError(400, "Verification has already been passed");
+    }
+
+    await sendVerificationEmail(user.email, user.verificationToken);
+
+    res.json({ message: "Verification email sent" });
   } catch (error) {
     next(error);
   }

@@ -44,6 +44,7 @@ describe("Login Controller", () => {
       email: "test@example.com",
       password: "hashedpassword",
       subscription: "starter",
+      verify: true,
     };
 
     mockFindUserByEmail.mockResolvedValue(mockUser);
@@ -64,6 +65,7 @@ describe("Login Controller", () => {
       email: "test@example.com",
       password: "hashedpassword",
       subscription: "starter",
+      verify: true,
     };
     const expectedToken = "test-token-123";
 
@@ -87,6 +89,7 @@ describe("Login Controller", () => {
       email: "test@example.com",
       password: "hashedpassword",
       subscription: "starter",
+      verify: true,
     };
 
     mockFindUserByEmail.mockResolvedValue(mockUser);
@@ -127,10 +130,29 @@ describe("Login Controller", () => {
       email: "test@example.com",
       password: "hashedpassword",
       subscription: "starter",
+      verify: true,
     };
 
     mockFindUserByEmail.mockResolvedValue(mockUser);
     mockValidatePassword.mockResolvedValue(false);
+
+    await login(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const error = next.mock.calls[0][0];
+    expect(error.status).toBe(401);
+  });
+
+  test("should call next with 401 error for unverified user", async () => {
+    const mockUser = {
+      id: 1,
+      email: "test@example.com",
+      password: "hashedpassword",
+      subscription: "starter",
+      verify: false,
+    };
+
+    mockFindUserByEmail.mockResolvedValue(mockUser);
 
     await login(req, res, next);
 
