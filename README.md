@@ -4,11 +4,14 @@ A simple REST API for managing contacts, built with Node.js and Express.
 
 ## Features
 
+- **Persistence**: Contacts are stored in a PostgreSQL database using Sequelize.
 - **List Contacts**: Retrieve all stored contacts.
 - **Get Contact**: Retrieve a specific contact by ID.
 - **Add Contact**: Create a new contact with validation.
 - **Remove Contact**: Delete a contact by ID.
 - **Update Contact**: Update an existing contact's details.
+- **Update Status**: Update the "favorite" status of a contact.
+- **Data Seeding**: Automatically populates the database with initial data from `db/contacts.json` if empty.
 
 ## Installation
 
@@ -24,6 +27,18 @@ A simple REST API for managing contacts, built with Node.js and Express.
     ```bash
     npm install
     ```
+
+## Configuration
+
+Create a `.env` file in the root directory and add the following environment variables:
+
+```
+DB_NAME=your_database_name
+DB_USER=your_database_user
+DB_PASSWORD=your_database_password
+DB_HOST=your_database_host
+DB_PORT=5432
+```
 
 ## Usage
 
@@ -141,6 +156,22 @@ Updates a contact. At least one field is required in the body.
 
 **Response (200):** Returns the updated contact object.
 **Error (400):** Body missing fields or validation error.
+**Error (404):** `{"message": "Not found"}`
+
+### PATCH /api/contacts/:id/favorite
+
+Updates the favorite status of a contact.
+
+**Body (JSON):**
+
+```json
+{
+  "favorite": true
+}
+```
+
+**Response (200):** Returns the updated contact object.
+**Error (400):** Missing field `favorite`.
 **Error (404):** `{"message": "Not found"}`
 
 ## Technologies
