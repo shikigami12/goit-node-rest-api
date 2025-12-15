@@ -1,3 +1,5 @@
+import fs from "fs/promises";
+import path from "path";
 import * as authService from "../services/authServices.js";
 import HttpError from "../helpers/HttpError.js";
 
@@ -86,6 +88,30 @@ export const updateSubscription = async (req, res, next) => {
       email: updatedUser.email,
       subscription: updatedUser.subscription,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateAvatar = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      throw HttpError(400, "No file uploaded");
+    }
+
+    const { id } = req.user;
+    const { path: tempPath, filename } = req.file;
+
+    const newFilename = `${id}-${filename}`;
+    const avatarsDir = path.resolve("public", "avatars");
+    const newPath = path.join(avatarsDir, newFilename);
+
+    await fs.rename(tempPath, newPath);
+
+    const avatarURL = `/avatars/${newFilename}`;
+    await authService.updateUserAvatar(id, avatarURL);
+
+    res.json({ avatarURL });
   } catch (error) {
     next(error);
   }
