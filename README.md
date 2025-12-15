@@ -40,6 +40,39 @@ DB_HOST=your_database_host
 DB_PORT=5432
 ```
 
+### Local Development Only
+
+To run a PostgreSQL database locally using Docker:
+
+```bash
+docker run --name postgres-contacts -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=contacts -p 5432:5432 -d postgres
+```
+
+Then use these values in your `.env` file:
+
+```
+DB_NAME=contacts
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_HOST=localhost
+DB_PORT=5432
+```
+
+To stop the container:
+```bash
+docker stop postgres-contacts
+```
+
+To start it again:
+```bash
+docker start postgres-contacts
+```
+
+To remove the container completely:
+```bash
+docker rm -f postgres-contacts
+```
+
 ## Usage
 
 ### Development Mode

@@ -3,6 +3,7 @@ import morgan from "morgan";
 import cors from "cors";
 
 import contactsRouter from "./routes/contactsRouter.js";
+import authRouter from "./routes/authRouter.js";
 
 const app = express();
 
@@ -11,6 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api/contacts", contactsRouter);
+app.use("/api/auth", authRouter);
 
 app.use((_, res) => {
   res.status(404).json({ message: "Route not found" });
@@ -22,9 +24,8 @@ app.use((err, req, res, next) => {
   res.status(status).json({ message });
 });
 
-import fs from "fs/promises";
-import path from "path";
 import Contact from "./db/models/Contact.js";
+import User from "./db/models/User.js";
 import sequelize from "./db/connection.js";
 
 sequelize
@@ -32,27 +33,6 @@ sequelize
   .then(() => {
     console.log("Database connection successful");
     return sequelize.sync({ alter: true });
-  })
-  .then(async () => {
-    try {
-      const data = await fs.readFile(path.join(process.cwd(), "db/contacts.json"), "utf8");
-      const contacts = JSON.parse(data);
-
-      for (const contact of contacts) {
-        const existing = await Contact.findOne({ where: { email: contact.email } });
-        if (!existing) {
-          await Contact.create({
-            name: contact.name,
-            email: contact.email,
-            phone: contact.phone,
-            favorite: false,
-          });
-          console.log(`Seeded contact: ${contact.name}`);
-        }
-      }
-    } catch (error) {
-      console.error("Seeding error:", error.message);
-    }
   })
   .then(() => {
     app.listen(3000, () => {
