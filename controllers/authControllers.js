@@ -1,0 +1,92 @@
+import * as authService from "../services/authServices.js";
+import HttpError from "../helpers/HttpError.js";
+
+export const register = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    const existingUser = await authService.findUserByEmail(email);
+    if (existingUser) {
+      throw HttpError(409, "Email in use");
+    }
+
+    const user = await authService.createUser(email, password);
+
+    res.status(201).json({
+      user: {
+        email: user.email,
+        subscription: user.subscription,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const login = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await authService.findUserByEmail(email);
+    if (!user) {
+      throw HttpError(401, "Email or password is wrong");
+    }
+
+    const isValidPassword = await authService.validatePassword(
+      password,
+      user.password
+    );
+    if (!isValidPassword) {
+      throw HttpError(401, "Email or password is wrong");
+    }
+
+    const token = authService.generateToken(user.id);
+    await authService.updateUserToken(user.id, token);
+
+    res.json({
+      token,
+      user: {
+        email: user.email,
+        subscription: user.subscription,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const logout = async (req, res, next) => {
+  try {
+    const { id } = req.user;
+    await authService.updateUserToken(id, null);
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getCurrentUser = async (req, res, next) => {
+  try {
+    const { email, subscription } = req.user;
+    res.json({ email, subscription });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateSubscription = async (req, res, next) => {
+  try {
+    const { id } = req.user;
+    const { subscription } = req.body;
+
+    await req.user.update({ subscription });
+    const updatedUser = await authService.findUserById(id);
+
+    res.json({
+      email: updatedUser.email,
+      subscription: updatedUser.subscription,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

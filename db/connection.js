@@ -3,17 +3,21 @@ import "dotenv/config";
 
 const { DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_USER } = process.env;
 
+const isProduction = DB_HOST?.includes("render.com");
+
 const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
-    host: DB_HOST,
-    port: DB_PORT,
-    dialect: "postgres",
-    logging: false,
-    dialectOptions: {
+  host: DB_HOST,
+  port: DB_PORT,
+  dialect: "postgres",
+  logging: false,
+  dialectOptions: isProduction
+    ? {
         ssl: {
-            require: true,
-            rejectUnauthorized: false,
+          require: true,
+          rejectUnauthorized: false,
         },
-    },
+      }
+    : {},
 });
 
 export default sequelize;
